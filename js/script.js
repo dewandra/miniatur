@@ -1,93 +1,149 @@
 const c = console.log.bind(document);
 
-// - - - - - - - - MENGGUNAKAN CARA BIASA - - - - - - - -
-
-// // TODOS SECTION
-// let submit = document.getElementById("submit");
-// const todos = document.getElementById("todos-new");
-
-// // add list
-// submit.addEventListener("click", function (e) {
-//   e.preventDefault();
-//   // get value
-//   let nameTodos = document.getElementById("todos-name");
-//   let dateTodos = document.getElementById("todos-date");
-//   let msgTodos = document.getElementById("todos-msg");
-
-//   let length = localStorage.getItem("name", `${nameTodos.value}`);
-
-//   if (nameTodos.value == "" || dateTodos.value == "" || msgTodos.value == "") {
-//     alert("data tidak boleh kosong!");
-//   } else {
-//     // tambahkan value ke dalam table
-//     let newTodos = `<li class="list-group-item d-flex justify-content-between align-items-start">
-//     <div class="ms-4 me-auto">
-//       <div class="fw-bold">${nameTodos.value}</div>
-//       ${msgTodos.value}
-//       <div class="text-muted">${dateTodos.value}</div>
-//     </div>
-//       <span onclick ="editItem(this)"class="fa fa-edit text-success me-1"></span>
-//       <span onclick ="removeItem(this)" class="fa fa-trash text-danger"></span>
-//       </li>`;
-
-//     todos.insertAdjacentHTML("afterbegin", newTodos);
-//     //
-//     // save local storage
-//     localStorage.setItem("name", `${nameTodos.value}`);
-//     localStorage.setItem("date", `${dateTodos.value}`);
-//     localStorage.setItem("msg", `${msgTodos.value}`);
-
-//     // // empty field
-//     nameTodos.value = "";
-//     dateTodos.value = "";
-//     msgTodos.value = "";
-//   }
-// });
-
-// // delete list
-// function removeItem(el) {
-//   // el.parentElement.remove();
-//   let y = confirm("yakin? ");
-//   y ? el.parentElement.remove() : null;
-// }
-
-// - - - - - - - - MENGGUNAKAN CARA PUSH ARRAY OBJECT KE LOCAL STORAGE - - - - - - - -
-
-// when the page loads
-// check local storage for Data
-// update values form using Data
-
-document.addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  //   get values from form input
-  let name = document.getElementById("todos-name").value;
-  let date = document.getElementById("todos-date").value;
-  let msg = document.getElementById("todos-msg").value;
-  // check validation data
-  if (!name || !date || !msg) {
-    alert("ada kolom yang kosong! ");
-  } else {
-    let newTodos = `<li class="list-group-item d-flex justify-content-between align-items-start">
-    <div class="ms-4 me-auto">
-      <div class="fw-bold">${name.value}</div>
-      ${date.value}
-      <div class="text-muted">${msg.value}</div>
-    </div>
-      <span onclick ="editItem(this)"class="fa fa-edit text-success me-1"></span>
-      <span onclick ="removeItem(this)" class="fa fa-trash text-danger"></span>
-      </li>`;
-
-    let todos = document.getElementById("todos-form");
-    todos.insertAdjacentHTML("afterbegin", newTodos);
-
-    // save to localstorage
-    const dataInfo = {
-      name: name,
-      date: date,
-      msg: msg,
-    };
-
-    localStorage.setItem("dataInfo", JSON.stringify(dataInfo));
+// table todos
+function table() {
+  let table = `<tr>`;
+  for (let i = 0; i < details.length; i++) {
+    table =
+      table +
+      `<th scope="row">${i + 1}</th>
+              <td>${details[i].name}</td>
+              <td>${details[i].msg}</td>
+              <td>${details[i].date}</td>
+              <td>
+                <span
+                  onclick="editData(${i})"
+                  class="fa fa-edit text-success" 
+                  data-bs-toggle="modal"
+                  data-bs-target="#exampleModal"
+                ></span>
+              </td>
+              <td>
+              <span
+                  onclick="removeData(${i})"
+                  class="fa fa-trash text-danger"
+                ></span>
+              </td>
+            `;
+    table = table + `</tr>`;
   }
-});
+
+  document.getElementById("todos-table").innerHTML = table;
+}
+let altTodos = document.getElementById("todos-alert");
+altTodos.style.display = "none";
+
+// array for data
+details = [];
+getData();
+table();
+
+// get data localStorage
+function getData() {
+  let data = localStorage.getItem("details");
+  if (data) {
+    details = JSON.parse(data);
+  } else {
+    setData();
+  }
+}
+
+// set data localStorage
+function setData() {
+  localStorage.setItem("details", JSON.stringify(details));
+}
+
+// function add data
+function addData() {
+  let name = document.getElementById("todos-name");
+  let date = document.getElementById("todos-date");
+  let msg = document.getElementById("todos-msg");
+
+  if (!name.value || !date.value || !msg.value) {
+    altTodos.style.display = "block";
+    return;
+  } else {
+    altTodos.style.display = "none";
+  }
+  // object for data
+  let data = {
+    name: name.value,
+    date: date.value,
+    msg: msg.value,
+  };
+
+  // push data object to array
+  details.push(data);
+  setData();
+
+  c(details);
+  table();
+
+  name.value = "";
+  date.value = "";
+  msg.value = "";
+}
+
+// function delete data
+function removeData(index) {
+  if (confirm("sure? ")) {
+    details.splice(index, 1);
+    setData();
+    table();
+  } else {
+    null;
+  }
+}
+
+// function edit data
+function editData(index) {
+  // form modal
+  var formModalBody = `<div class="row">
+          <div class="col-md-6 mb-3">
+            <input type="text" value="${details[index].name}" id="edit-todos-name" placeholder="name" />
+          </div>
+          <div class="col-md-6 mb-3">
+            <input type="date" value="${details[index].date}" id="edit-todos-date" placebholder="date" />
+          </div>
+          <div class="col-md-12">
+            <textarea placeholder="${details[index].msg}"
+              id="edit-todos-msg"
+            ></textarea>
+          </div>
+          </div>`;
+
+  var formModalFooter = `<button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+          >
+          Close
+          </button>
+          <button type="button" class="btn btn-dark" onclick="updateData(${index})">
+          Save changes
+          </button>`;
+
+  // put form modal to modal body
+  document.querySelector(".modal-body").innerHTML = formModalBody;
+  document.querySelector(".modal-footer").innerHTML = formModalFooter;
+  let alt = document.getElementById("modal-alert");
+  alt.style.display = "none";
+  setData();
+}
+
+// function update data
+function updateData(index) {
+  let newName = document.getElementById("edit-todos-name");
+  let newDate = document.getElementById("edit-todos-date");
+  let newMsg = document.getElementById("edit-todos-msg");
+
+  details[index] = {
+    name: newName.value,
+    date: newDate.value,
+    msg: newMsg.value,
+  };
+  let altModal = document.getElementById("modal-alert");
+  details[index] ? (altModal.style.display = "block") : null;
+  setData();
+  table();
+}
